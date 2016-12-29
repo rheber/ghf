@@ -1,5 +1,6 @@
 import json
 import tkinter as tk
+from urllib.error import URLError
 from urllib.request import urlopen
 
 URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
@@ -18,7 +19,7 @@ class Table(tk.Frame):
     for row in range(rows):
       currentRow = []
       for col in range(cols):
-        label = tk.Label(self, text='foo')
+        label = tk.Label(self, text='_')
         label.grid(row=row, column=col)
         currentRow.append(label)
       self.widgets.append(currentRow)
@@ -28,7 +29,7 @@ class Table(tk.Frame):
     widget.configure(text=value)
 
 class ScrolledFrame(tk.Frame):
-  def __init__(self, parent):
+  def __init__(self, parent, rows=30):
     tk.Frame.__init__(self, parent)
 
     vscroll = tk.Scrollbar(self, orient='vertical')
@@ -40,7 +41,7 @@ class ScrolledFrame(tk.Frame):
     canvas.xview_moveto(0)
     canvas.yview_moveto(0)
 
-    self.interior = intr = Table(canvas, rows=30)
+    self.interior = intr = Table(canvas, rows)
     interiorId = canvas.create_window(0, 0, anchor='nw', window=intr)
 
     def configure_interior(event):
@@ -58,17 +59,18 @@ class ScrolledFrame(tk.Frame):
 class App(tk.Tk):
   def __init__(self):
     root = tk.Tk.__init__(self)
-    self.frame = ScrolledFrame(root)
+    self.populateTable(root)
+
+  def populateTable(self, root):
+    try:
+      users = list(usernames())
+    except URLError:
+      users = ['Could not fetch user list.']
+    ulen = len(users)
+    self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
-    self.createButtons()
-
-  def createButtons(self):
-    btnGetUsernames = tk.Button(self, text='Get Usernames', command=self.populateTable)
-    btnGetUsernames.pack(side='bottom')
-
-  def populateTable(self):
-    for i in range(len(self.frame.interior.widgets)):
-      self.frame.interior.set(i, 0, 'bar')
+    for i in range(ulen):
+      self.frame.interior.set(i, 0, users[i])
 
 def gui():
   return App().mainloop()

@@ -58,15 +58,17 @@ class ScrolledFrame(tk.Frame):
 class App(tk.Tk):
   def __init__(self):
     root = tk.Tk.__init__(self)
-    #Table(self).pack(side='top')
     self.frame = ScrolledFrame(root)
     self.frame.pack()
     self.createButtons()
 
   def createButtons(self):
-    btnGetUsernames = tk.Button(self, text='Get Usernames', command=usernames)
+    btnGetUsernames = tk.Button(self, text='Get Usernames', command=self.populateTable)
     btnGetUsernames.pack(side='bottom')
 
+  def populateTable(self):
+    for i in range(len(self.frame.interior.widgets)):
+      self.frame.interior.set(i, 0, 'bar')
 
 def gui():
   return App().mainloop()

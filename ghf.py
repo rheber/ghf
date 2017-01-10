@@ -4,10 +4,15 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
-user = 'rheber'
 pageNum = 1
 
-def usernames():
+def yourName():
+  '''Prompt user for their Github username.'''
+  return input('Enter your username: ')
+
+def followeeNames():
+  '''Get followee usernames from Github.'''
+  user = yourName()
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
@@ -98,7 +103,7 @@ class App(tk.Tk):
   def populateTable(self, root):
     '''Fills table. Returns amount of rows.'''
     try:
-      users = list(usernames())
+      users = list(followeeNames())
       ulen = len(users)
       f = loadFollowees()
       descs = []

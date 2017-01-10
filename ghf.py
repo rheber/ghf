@@ -24,6 +24,9 @@ class Table(tk.Frame):
         currentRow.append(label)
       self.widgets.append(currentRow)
 
+  def get(self, row, col):
+    return self.widgets[row][col]['text']
+
   def set(self, row, col, value):
     widget = self.widgets[row][col]
     widget.configure(text=value)
@@ -58,40 +61,60 @@ class ScrolledFrame(tk.Frame):
 
 def loadFollowees():
   '''Dictionary of names and descriptions in followees file.'''
-  return {line.split()[0]:line.split()[1] for
-          line in open('followees').read().split('\n')}
+
+  def ud(line):
+    '''Break liine into user and description.'''
+    sp = line.split()
+    if len(sp) == 0:
+      return ('', '')
+    if len(sp) == 1:
+      return (sp[0], '')
+    return (sp[0], sp[1])
+
+  try:
+    return {ud(line)[0]:ud(line)[1] for
+            line in list(open('followees').read().split('\n')) if line}
+  except FileNotFoundError:
+    return {'Could not fetch user list or open followees file.':''}
+  except IndexError:
+    return {'Error reading followees file.':''}
 
 class App(tk.Tk):
   def __init__(self):
     root = tk.Tk.__init__(self)
-    self.populateTable(root)
+    self.amtRows = self.populateTable(root)
+    self.createButtons()
+
+  def saveFollowees(self):
+    table = self.frame.interior
+    with open('followees', 'w') as fo:
+      fo.writelines('{0}\t{1}\n'.format(
+        table.get(row, 0), table.get(row, 1)) for row in range(self.amtRows))
+
+  def createButtons(self):
+    btnSave = tk.Button(self, text='Save', command=self.saveFollowees)
+    btnSave.pack(side='bottom')
 
   def populateTable(self, root):
+    '''Fills table. Returns amount of rows.'''
     try:
       users = list(usernames())
       ulen = len(users)
-      try:
-        f = loadFollowees()
-        descs = []
-        for user in users:
-          descs.append(f[user]) if user in f else descs.append('_')
-      except FileNotFoundError:
-        descs = ['_'] * ulen
+      f = loadFollowees()
+      descs = []
+      for user in users:
+        descs.append(f[user]) if user in f else descs.append('_')
     except URLError:
-      try:
-        f = loadFollowees()
-        users = list(f.keys())
-        descs = list(f.values())
-        ulen = len(users)
-      except FileNotFoundError:
-        users = ['Could not fetch user list or open followees file.']
-        descs = ['']
-        ulen = 1
+      f = loadFollowees()
+      users = list(f.keys())
+      descs = list(f.values())
+      ulen = len(users)
     self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
     for i in range(ulen):
       self.frame.interior.set(i, 0, users[i])
       self.frame.interior.set(i, 1, descs[i])
+    return ulen
 
 def gui():
   return App().mainloop()

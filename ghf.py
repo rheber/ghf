@@ -56,6 +56,11 @@ class ScrolledFrame(tk.Frame):
         canvas.itemconfigure(interiorId, width=canvas.winfo_width())
     canvas.bind('<Configure>', configure_canvas) 
 
+def loadFollowees():
+  '''Dictionary of names and descriptions in followees file.'''
+  return {line.split()[0]:line.split()[1] for
+          line in open('followees').read().split('\n')}
+
 class App(tk.Tk):
   def __init__(self):
     root = tk.Tk.__init__(self)
@@ -64,13 +69,29 @@ class App(tk.Tk):
   def populateTable(self, root):
     try:
       users = list(usernames())
+      ulen = len(users)
+      try:
+        f = loadFollowees()
+        descs = []
+        for user in users:
+          descs.append(f[user]) if user in f else descs.append('_')
+      except FileNotFoundError:
+        descs = ['_'] * ulen
     except URLError:
-      users = ['Could not fetch user list.']
-    ulen = len(users)
+      try:
+        f = loadFollowees()
+        users = list(f.keys())
+        descs = list(f.values())
+        ulen = len(users)
+      except FileNotFoundError:
+        users = ['Could not fetch user list or open followees file.']
+        descs = ['']
+        ulen = 1
     self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
     for i in range(ulen):
       self.frame.interior.set(i, 0, users[i])
+      self.frame.interior.set(i, 1, descs[i])
 
 def gui():
   return App().mainloop()

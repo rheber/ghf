@@ -14,6 +14,7 @@ def yourName():
 
 def followeeNames():
   '''Get followee usernames from Github.'''
+  global YOURNAME
   user = YOURNAME
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
@@ -109,18 +110,21 @@ class App(tk.Tk):
 
   def populateTable(self, root):
     '''Fills table. Returns amount of rows.'''
+    global YOURNAME
     try:
-      users = list(followeeNames())
+      users = sorted(list(followeeNames()))
       ulen = len(users)
       f = loadFollowees()
       descs = []
       for user in users:
         descs.append(f[user]) if user in f else descs.append('')
+      print('Successfully retrieved {0}\'s data from Github.'.format(YOURNAME))
     except URLError:
       f = loadFollowees()
       users = list(f.keys())
       descs = list(f.values())
       ulen = len(users)
+      print('Could not load {0}\'s data from Github.'.format(YOURNAME))
     self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
     for i in range(ulen):
@@ -132,6 +136,7 @@ def gui():
   return App().mainloop()
 
 def main():
+  global YOURNAME
   YOURNAME = yourName()
   return gui()
 

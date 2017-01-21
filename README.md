@@ -1,7 +1,7 @@
 # README
 
-ghf is a tool that gets the list of people you follow on Github. This allows you to, for example, keep notes on them. It's not very impressive at the moment.
+ghf is a tool that gets the list of people you follow on Github, allowing you to keep notes on them.
 
 ## Usage
 
-Run `python ghf.py` and enter your username. A list of your Github followees will appear in a window, along with a Save button which will save the list to file.
+Run `python ghf.py` and enter your username. A window listing your Github followees will appear. Beside each username will be a text box. Clicking the Save button will save the list of users along with your annotations to file.

@@ -17,24 +17,29 @@ def followeeNames():
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
 
-class Table(tk.Frame):
-  def __init__(self, parent, rows=5, cols=2):
+class TableAnnotated(tk.Frame):
+  '''Table with one column of labels and one of entry boxes.'''
+
+  def __init__(self, parent, rows=5):
     tk.Frame.__init__(self, parent)
     self.widgets = []
     for row in range(rows):
-      currentRow = []
-      for col in range(cols):
-        label = tk.Label(self, text='_')
-        label.grid(row=row, column=col)
-        currentRow.append(label)
-      self.widgets.append(currentRow)
+      label = tk.Label(self)
+      label.grid(row=row, column=0)
+      entry = tk.Entry(self)
+      entry.grid(row=row, column=1)
+      self.widgets.append([label, entry])
 
   def get(self, row, col):
-    return self.widgets[row][col]['text']
+    return self.widgets[row][0]['text'] if col == 0 else self.widgets[row][1].get()
 
   def set(self, row, col, value):
     widget = self.widgets[row][col]
-    widget.configure(text=value)
+    if col == 0:
+      widget.configure(text=value)
+    else:
+      widget.delete(0, tk.END)
+      widget.insert(0, value)
 
 class ScrolledFrame(tk.Frame):
   def __init__(self, parent, rows=30):
@@ -49,7 +54,7 @@ class ScrolledFrame(tk.Frame):
     canvas.xview_moveto(0)
     canvas.yview_moveto(0)
 
-    self.interior = intr = Table(canvas, rows)
+    self.interior = intr = TableAnnotated(canvas, rows)
     interiorId = canvas.create_window(0, 0, anchor='nw', window=intr)
 
     def configure_interior(event):
@@ -69,7 +74,7 @@ def loadFollowees():
 
   def ud(line):
     '''Break liine into user and description.'''
-    sp = line.split()
+    sp = line.split('\t')
     if len(sp) == 0:
       return ('', '')
     if len(sp) == 1:
@@ -108,7 +113,7 @@ class App(tk.Tk):
       f = loadFollowees()
       descs = []
       for user in users:
-        descs.append(f[user]) if user in f else descs.append('_')
+        descs.append(f[user]) if user in f else descs.append('')
     except URLError:
       f = loadFollowees()
       users = list(f.keys())

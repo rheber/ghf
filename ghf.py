@@ -6,13 +6,15 @@ from urllib.request import urlopen
 URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
 pageNum = 1
 
+YOURNAME = ''
+
 def yourName():
   '''Prompt user for their Github username.'''
   return input('Enter your username: ')
 
 def followeeNames():
   '''Get followee usernames from Github.'''
-  user = yourName()
+  user = YOURNAME
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
@@ -130,6 +132,7 @@ def gui():
   return App().mainloop()
 
 def main():
+  YOURNAME = yourName()
   return gui()
 
 if __name__ == '__main__':

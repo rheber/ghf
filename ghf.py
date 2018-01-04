@@ -1,4 +1,5 @@
 import json
+import os.path
 import tkinter as tk
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -19,6 +20,23 @@ def followeeNames():
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
+
+def followeesPath():
+  '''Return followees file name and folder.'''
+
+  # Defaults
+  followeesFilename = 'followees'
+  followeesFolder = '.'
+  
+  if os.path.exists('ghf.json'):
+    with open('ghf.json') as fyle:
+      config = json.loads(fyle.read())
+    if 'followeesFilename' in config:
+      followeesFilename = config['followeesFilename']
+    if 'followeesFolder' in config:
+      followeesFolder = config['followeesFolder']
+
+  return os.path.join(followeesFolder, followeesFilename)
 
 class TableAnnotated(tk.Frame):
   '''Table with one column of labels and one of entry boxes.'''
@@ -86,7 +104,7 @@ def loadFollowees():
 
   try:
     return {ud(line)[0]:ud(line)[1] for
-            line in list(open('followees').read().split('\n')) if line}
+            line in list(open(followeesPath()).read().split('\n')) if line}
   except FileNotFoundError:
     return {'Could not fetch user list or open followees file.':''}
   except IndexError:
@@ -100,7 +118,7 @@ class App(tk.Tk):
 
   def saveFollowees(self):
     table = self.frame.interior
-    with open('followees', 'w') as fo:
+    with open(followeesPath(), 'w') as fo:
       fo.writelines('{0}\t{1}\n'.format(
         table.get(row, 0), table.get(row, 1)) for row in range(self.amtRows))
 

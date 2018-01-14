@@ -1,6 +1,7 @@
 import json
 from os import environ
 import os.path
+import sys
 import tkinter as tk
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -9,6 +10,9 @@ URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100
 pageNum = 1
 
 YOURNAME = ''
+
+class ghfException(Exception):
+  pass
 
 def pathIfFound(filename):
   '''Full path if file in current folder or any folder in system path.'''
@@ -117,9 +121,9 @@ def loadFollowees():
     return {ud(line)[0]:ud(line)[1] for
             line in list(open(followeesPath()).read().split('\n')) if line}
   except FileNotFoundError:
-    return {'Could not fetch user list or open followees file.':''}
+    raise ghfException('Could not fetch user list or open followees file.')
   except IndexError:
-    return {'Error reading followees file.':''}
+    raise ghfException('Error reading followees file.')
 
 class App(tk.Tk):
   def __init__(self):
@@ -148,13 +152,13 @@ class App(tk.Tk):
       descs = []
       for user in users:
         descs.append(f[user]) if user in f else descs.append('')
-      print('Successfully retrieved {0}\'s data from Github.'.format(YOURNAME))
+      print('Successfully retrieved {0}\'s data from Github.'.format(YOURNAME), file=sys.stderr)
     except URLError:
       f = sorted(loadFollowees().items())
       users = list(map(lambda x: x[0], f))
       descs = list(map(lambda x: x[1], f))
       ulen = len(users)
-      print('Could not load {0}\'s data from Github.'.format(YOURNAME))
+      print('Could not load {0}\'s data from Github.'.format(YOURNAME), file=sys.stderr)
     self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
     for i in range(ulen):

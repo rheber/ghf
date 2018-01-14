@@ -1,4 +1,5 @@
 import json
+from os import environ
 import os.path
 import tkinter as tk
 from urllib.error import URLError
@@ -8,6 +9,15 @@ URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100
 pageNum = 1
 
 YOURNAME = ''
+
+def pathIfFound(filename):
+  '''Full path if file in current folder or any folder in system path.'''
+  pathFolders = environ['PATH'].split(';') # Not tested on Unix.
+  pathFolders.insert(0, '.')
+  for folder in pathFolders:
+    path = os.path.join(folder, filename)
+    if os.path.exists(path):
+      return path
 
 def yourName():
   '''Prompt user for their Github username.'''
@@ -27,9 +37,10 @@ def followeesPath():
   # Defaults
   followeesFilename = 'followees'
   followeesFolder = '.'
-  
-  if os.path.exists('ghf.json'):
-    with open('ghf.json') as fyle:
+
+  path = pathIfFound('ghf.json')
+  if path:
+    with open(path) as fyle:
       config = json.loads(fyle.read())
     if 'followeesFilename' in config:
       followeesFilename = config['followeesFilename']

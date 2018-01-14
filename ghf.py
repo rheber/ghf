@@ -149,9 +149,9 @@ class App(tk.Tk):
         descs.append(f[user]) if user in f else descs.append('')
       print('Successfully retrieved {0}\'s data from Github.'.format(YOURNAME))
     except URLError:
-      f = loadFollowees()
-      users = list(f.keys())
-      descs = list(f.values())
+      f = sorted(loadFollowees().items())
+      users = list(map(lambda x: x[0], f))
+      descs = list(map(lambda x: x[1], f))
       ulen = len(users)
       print('Could not load {0}\'s data from Github.'.format(YOURNAME))
     self.frame = ScrolledFrame(root, rows=ulen)

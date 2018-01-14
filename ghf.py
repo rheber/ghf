@@ -9,8 +9,6 @@ from urllib.request import urlopen
 URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
 pageNum = 1
 
-YOURNAME = ''
-
 class ghfException(Exception):
   pass
 
@@ -27,10 +25,8 @@ def yourName():
   '''Prompt user for their Github username.'''
   return input('Enter your username: ')
 
-def followeeNames():
+def followeeNames(user):
   '''Get followee usernames from Github.'''
-  global YOURNAME
-  user = YOURNAME
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
@@ -126,10 +122,10 @@ def loadFollowees():
     raise ghfException('Error reading followees file.')
 
 class App(tk.Tk):
-  def __init__(self):
+  def __init__(self, yourname):
     root = tk.Tk.__init__(self)
     self.title('ghf')
-    self.amtRows = self.populateTable(root)
+    self.amtRows = self.populateTable(root, yourname)
     self.createButtons()
 
   def saveFollowees(self):
@@ -142,23 +138,22 @@ class App(tk.Tk):
     btnSave = tk.Button(self, text='Save', command=self.saveFollowees)
     btnSave.pack(side='bottom')
 
-  def populateTable(self, root):
+  def populateTable(self, root, yourname):
     '''Fills table. Returns amount of rows.'''
-    global YOURNAME
     try:
-      users = sorted(list(followeeNames()))
+      users = sorted(list(followeeNames(yourname)))
       ulen = len(users)
       f = loadFollowees()
       descs = []
       for user in users:
         descs.append(f[user]) if user in f else descs.append('')
-      print('Successfully retrieved {0}\'s data from Github.'.format(YOURNAME), file=sys.stderr)
+      print('Successfully retrieved {0}\'s data from Github.'.format(yourname), file=sys.stderr)
     except URLError:
       f = sorted(loadFollowees().items())
       users = list(map(lambda x: x[0], f))
       descs = list(map(lambda x: x[1], f))
       ulen = len(users)
-      print('Could not load {0}\'s data from Github.'.format(YOURNAME), file=sys.stderr)
+      print('Could not load {0}\'s data from Github.'.format(yourname), file=sys.stderr)
     self.frame = ScrolledFrame(root, rows=ulen)
     self.frame.pack()
     for i in range(ulen):
@@ -166,13 +161,12 @@ class App(tk.Tk):
       self.frame.interior.set(i, 1, descs[i])
     return ulen
 
-def gui():
-  return App().mainloop()
+def gui(yourname):
+  return App(yourname).mainloop()
 
 def main():
-  global YOURNAME
-  YOURNAME = yourName()
-  return gui()
+  yourname = yourName()
+  return gui(yourname)
 
 if __name__ == '__main__':
   main()

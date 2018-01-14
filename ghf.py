@@ -124,6 +124,7 @@ def loadFollowees():
 class App(tk.Tk):
   def __init__(self):
     root = tk.Tk.__init__(self)
+    self.title('ghf')
     self.amtRows = self.populateTable(root)
     self.createButtons()
 

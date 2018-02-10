@@ -3,6 +3,7 @@ from os import environ
 import os.path
 import sys
 import tkinter as tk
+from typing import Dict, Iterable, Optional, Tuple
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -12,7 +13,7 @@ pageNum = 1
 class ghfException(Exception):
   pass
 
-def pathIfFound(filename):
+def pathIfFound(filename: str) -> Optional[str]:
   '''Full path if file in current folder or any folder in system path.'''
   pathFolders = environ['PATH'].split(';') # Not tested on Unix.
   pathFolders.insert(0, '.')
@@ -20,18 +21,19 @@ def pathIfFound(filename):
     path = os.path.join(folder, filename)
     if os.path.exists(path):
       return path
+  return None
 
-def yourName():
+def yourName() -> str:
   '''Prompt user for their Github username.'''
   return input('Enter your username: ')
 
-def followeeNames(user):
+def followeeNames(user: str) -> Iterable[str]:
   '''Get followee usernames from Github.'''
   response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
 
-def followeesPath():
+def followeesPath() -> str:
   '''Return followees file name and folder.'''
 
   # Defaults
@@ -101,10 +103,10 @@ class ScrolledFrame(tk.Frame):
         canvas.itemconfigure(interiorId, width=canvas.winfo_width())
     canvas.bind('<Configure>', configure_canvas) 
 
-def loadFollowees():
+def loadFollowees() -> Dict[str, str]:
   '''Dictionary of names and descriptions in followees file.'''
 
-  def ud(line):
+  def ud(line: str) -> Tuple[str, str]:
     '''Break liine into user and description.'''
     sp = line.split('\t')
     if len(sp) == 0:

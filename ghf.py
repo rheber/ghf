@@ -119,7 +119,9 @@ def loadFollowees() -> Dict[str, str]:
     return {ud(line)[0]:ud(line)[1] for
             line in list(open(followeesPath()).read().split('\n')) if line}
   except FileNotFoundError:
-    raise ghfException('Could not fetch user list or open followees file.')
+    with open(followeesPath(), 'w') as fo:
+      fo.write('')
+    return {}
   except IndexError:
     raise ghfException('Error reading followees file.')
 

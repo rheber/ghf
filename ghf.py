@@ -15,6 +15,25 @@ pageNum = 1
 class ghfException(Exception):
   pass
 
+def readConfig():
+  '''Return configuration object.'''
+
+  path = pathIfFound('ghf.json')
+  if path:
+    with open(path) as fyle:
+      config = json.loads(fyle.read())
+    if 'followeesFilename' not in config:
+      config['followeesFilename'] = 'followees'
+    if 'followeesFolder' not in config:
+      config['followeesFolder'] = '.'
+  else:
+    config = {}
+    config['followeesFilename'] = 'followees'
+    config['followeesFolder'] = '.'
+
+  return config
+
+
 def pathIfFound(filename: str) -> Optional[str]:
   '''Full path if file in current folder or any folder in system path.'''
   pathFolders = environ['PATH'].split(';') # Not tested on Unix.
@@ -25,8 +44,10 @@ def pathIfFound(filename: str) -> Optional[str]:
       return path
   return None
 
-def yourName() -> str:
-  '''Prompt user for their Github username.'''
+def yourName(config) -> str:
+  '''Prompt user for their Github username or get it from configuration.'''
+  if 'username' in config:
+    return config['username']
   return input('Enter your username: ')
 
 def followeeNames(user: str) -> Iterable[str]:
@@ -35,23 +56,9 @@ def followeeNames(user: str) -> Iterable[str]:
   followedUsernames = [user['login'] for user in json.loads(response.decode())]
   return (u for u in followedUsernames)
 
-def followeesPath() -> str:
+def followeesPath(config) -> str:
   '''Return followees file name and folder.'''
-
-  # Defaults
-  followeesFilename = 'followees'
-  followeesFolder = '.'
-
-  path = pathIfFound('ghf.json')
-  if path:
-    with open(path) as fyle:
-      config = json.loads(fyle.read())
-    if 'followeesFilename' in config:
-      followeesFilename = config['followeesFilename']
-    if 'followeesFolder' in config:
-      followeesFolder = config['followeesFolder']
-
-  return os.path.join(followeesFolder, followeesFilename)
+  return os.path.join(config['followeesFolder'], config['followeesFilename'])
 
 class TableAnnotated(tk.Frame):
   '''Table with one column of labels and one of entry boxes.'''
@@ -105,7 +112,7 @@ class ScrolledFrame(tk.Frame):
         canvas.itemconfigure(interiorId, width=canvas.winfo_width())
     canvas.bind('<Configure>', configure_canvas) 
 
-def loadFollowees() -> Dict[str, str]:
+def loadFollowees(followeesPath: str) -> Dict[str, str]:
   '''Dictionary of names and descriptions in followees file.'''
 
   def ud(line: str) -> Tuple[str, str]:
@@ -119,24 +126,25 @@ def loadFollowees() -> Dict[str, str]:
 
   try:
     return {ud(line)[0]:ud(line)[1] for
-            line in list(open(followeesPath()).read().split('\n')) if line}
+            line in list(open(followeesPath).read().split('\n')) if line}
   except FileNotFoundError:
-    with open(followeesPath(), 'w') as fo:
+    with open(followeesPath, 'w') as fo:
       fo.write('')
     return {}
   except IndexError:
     raise ghfException('Error reading followees file.')
 
 class App(tk.Tk):
-  def __init__(self, yourname):
+  def __init__(self, config):
     root = tk.Tk.__init__(self)
     self.title('ghf')
-    self.amtRows = self.populateTable(root, yourname)
+    self.followeesPath = followeesPath(config)
+    self.amtRows = self.populateTable(root, config['username'])
     self.createButtons()
 
   def saveFollowees(self):
     table = self.frame.interior
-    with open(followeesPath(), 'w') as fo:
+    with open(self.followeesPath, 'w') as fo:
       fo.writelines('{0}\t{1}\n'.format(
         table.get(row, 0), table.get(row, 1)) for row in range(self.amtRows))
 
@@ -149,13 +157,13 @@ class App(tk.Tk):
     try:
       users = sorted(list(followeeNames(yourname)))
       ulen = len(users)
-      f = loadFollowees()
+      f = loadFollowees(self.followeesPath)
       descs = []
       for user in users:
         descs.append(f[user]) if user in f else descs.append('')
       print('Successfully retrieved {0}\'s data from Github.'.format(yourname), file=sys.stderr)
     except URLError:
-      f = sorted(loadFollowees().items())
+      f = sorted(loadFollowees(self.followeesPath).items())
       users = list(map(lambda x: x[0], f))
       descs = list(map(lambda x: x[1], f))
       ulen = len(users)
@@ -167,12 +175,13 @@ class App(tk.Tk):
       self.frame.interior.set(i, 1, descs[i])
     return ulen
 
-def gui(yourname):
-  return App(yourname).mainloop()
+def gui(config):
+  return App(config).mainloop()
 
 def main():
-  yourname = yourName()
-  return gui(yourname)
+  config = readConfig()
+  config['username'] = yourName(config)
+  return gui(config)
 
 if __name__ == '__main__':
   main()

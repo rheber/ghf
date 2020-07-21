@@ -1,0 +1,33 @@
+= README
+
+If you follow many users on Github, you may forget what sparked your
+interest in each user.
+
+ghf is a tool that fetches the list of people you follow on Github,
+allowing you to record an annotation for each followee.
+
+ghf was written in Python 3 and depends on the tkinter package.
+
+== Usage
+
+1. Run `python3 ghf.py`.
+
+2. Enter your username.
+
+3. A window listing your Github followees will appear. Beside each username will be a text box in which you may write a note.
+
+4. Click the Save button to save the list of users along with your annotations to file.
+
+== Configuration
+
+By default, ghf will save your notes to a file in the current directory. To customise this behaviour:
+
+1. Rename ghf.sample.json to ghf.json.
+
+2. Place the file anywhere in your current directory or system path.
+
+3. Modify the values inside the file.
+
+== Type Checking
+
+If you've installed mypy, you can perform type checking by running `python3 -m mypy ghf.py`.

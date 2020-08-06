@@ -116,7 +116,7 @@ class App():
             ulen = len(users)
             print('Could not load {0}\'s data from Github.'.format(yourname), file=sys.stderr)
         self.frame = ScrolledFrame(self.root, rows=ulen)
-        self.frame.pack()
+        self.frame.pack(expand='true', fill='y')
         for i in range(ulen):
             self.frame.interior.set(i, 0, users[i])
             self.frame.interior.set(i, 1, descs[i])

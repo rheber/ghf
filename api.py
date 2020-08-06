@@ -4,11 +4,17 @@ import json
 from typing import Iterable
 from urllib.request import urlopen
 
-URL = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
-pageNum = 1
+userUrl = 'https://api.github.com/users/{user}'
+followingUrl = 'https://api.github.com/users/{user}/following?page={pageNum}&per_page=100'
 
 def followeeNames(user: str) -> Iterable[str]:
     '''Get followee usernames from Github.'''
-    response = urlopen(URL.format(user=user, pageNum=pageNum)).read()
-    followedUsernames = [user['login'] for user in json.loads(response.decode())]
-    return (u for u in followedUsernames)
+    userResponse = urlopen(userUrl.format(user=user)).read()
+    userJson = json.loads(userResponse.decode())
+    followingAmount = userJson['following']
+    followedUsernames = []
+    for pageNum in range(1 + followingAmount // 100):
+        response = urlopen(followingUrl.format(user=user, pageNum=(1+pageNum))).read()
+        followedUsernames.extend([user['login'] for user in json.loads(response.decode())])
+    print("Retrieved {0} usernames from Github.".format(len(followedUsernames)))
+    return followedUsernames

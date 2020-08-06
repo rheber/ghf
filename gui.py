@@ -96,7 +96,7 @@ class App():
     def populateTable(self, yourname):
         '''Fills table. Returns amount of rows.'''
         try:
-            users = sorted(list(followeeNames(yourname)))
+            users = sorted(followeeNames(yourname), key=(lambda x: x.lower()))
             ulen = len(users)
             f = loadFollowees(self.followeesPath)
             descs = []

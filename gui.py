@@ -13,11 +13,12 @@ class TableAnnotated(tk.Frame):
     def __init__(self, parent, rows=5):
         tk.Frame.__init__(self, parent)
         self.widgets = []
+        self.columnconfigure(1, weight=1)
         for row in range(rows):
             label = tk.Label(self)
             label.grid(row=row, column=0)
             entry = tk.Entry(self)
-            entry.grid(row=row, column=1)
+            entry.grid(row=row, column=1, sticky="ew")
             self.widgets.append([label, entry])
 
     def get(self, row, col):
@@ -123,7 +124,7 @@ class App():
             ulen = len(users)
             print('Could not load {0}\'s data from Github.'.format(yourname), file=sys.stderr)
         self.frame = ScrolledFrame(self.root, rows=ulen)
-        self.frame.pack(expand='true', fill='y')
+        self.frame.pack(expand='true', fill='both')
         for i in range(ulen):
             self.frame.interior.set(i, 0, users[i])
             self.frame.interior.set(i, 1, descs[i])

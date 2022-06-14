@@ -63,6 +63,13 @@ class ScrolledFrame(tk.Frame):
                 canvas.itemconfigure(interiorId, width=canvas.winfo_width())
         canvas.bind('<Configure>', configure_canvas)
 
+        # https://stackoverflow.com/questions/17355902/tkinter-binding-mousewheel-to-scrollbar
+        def _on_mousewheel(event):
+            increment = -1 if event.num == 4 else 1
+            canvas.yview_scroll(increment, "units")
+        canvas.bind_all("<Button-4>", _on_mousewheel)
+        canvas.bind_all("<Button-5>", _on_mousewheel)
+
 class App():
     '''Root window of the GUI.'''
 
